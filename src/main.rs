@@ -1,33 +1,8 @@
-use clap::{Parser, Subcommand};
-use std::path::PathBuf;
+use clap::Parser;
+use cli::{Cli, Commands};
 
-#[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
-struct Cli {
-    #[arg(short, long, action = clap::ArgAction::Count)]
-    debug: u8,
-
-    #[command(subcommand)]
-    command: Option<Commands>,
-}
-
-#[derive(Subcommand, Debug)]
-enum Commands {
-    #[command(about = "Scan for unused PHP files")]
-    Scan {
-        path: PathBuf,
-        #[arg(short, long, help = "Ignore these paths")]
-        ignore: Vec<PathBuf>,
-        #[arg(short, long, help = "Entry points")]
-        entry: Vec<PathBuf>,
-        #[arg(short, long, help = "Only output unused files")]
-        only_unused: bool,
-        #[arg(short, long, help = "Fail on unused files")]
-        fail_on_unused: bool,
-        #[arg(short, long, help = "Output as JSON")]
-        json: bool,
-    },
-}
+mod cli;
+mod scan;
 
 fn main() {
     let cli = Cli::parse();
@@ -47,9 +22,7 @@ fn main() {
             only_unused: _,
             fail_on_unused: _,
             json,
-        }) => {
-            println!("Scanning: {:?}, --json?={:?}", path.display(), json);
-        }
+        }) => scan::scan(path, json),
         None => {}
     }
 }
