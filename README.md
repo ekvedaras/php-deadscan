@@ -1,6 +1,6 @@
 # PHP dead-code scanner
 
-This is a Rust learning project, not mean for production use (yet, if ever).
+This is a Rust learning project, not meant for production use.
 
 ## Goal
 
