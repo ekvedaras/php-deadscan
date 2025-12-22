@@ -30,13 +30,25 @@ pub(super) fn discover_classes(path: &PathBuf) -> HashMap<String, PathBuf> {
                     .map(|l| l.trim().to_string())
                 {
                     match line {
-                        line if line.starts_with("class ")
+                        line if (line.starts_with("class ")
+                            || line.starts_with("final class ")
+                            || line.starts_with("readonly class ")
+                            || line.starts_with("final readonly class ")
+                            || line.starts_with("abstract class ")
+                            || line.starts_with("abstract readonly class ")
+                            || line.starts_with("trait ")
+                            || line.starts_with("interface "))
                             && in_php_block
                             && !in_comment_block
                             && !in_now_doc_block =>
                         {
-                            let class_name =
-                                line.trim().split_whitespace().nth(1).unwrap().to_string();
+                            let class_name = line
+                                .trim()
+                                .split_whitespace()
+                                .skip_while(|s| *s != "class" && *s != "trait" && *s != "interface")
+                                .nth(1)
+                                .unwrap() // todo
+                                .to_string();
                             classes.insert(class_name, entry.path().to_path_buf());
                         }
                         line if line.starts_with("<?php") => in_php_block = true,
