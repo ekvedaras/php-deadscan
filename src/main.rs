@@ -1,8 +1,6 @@
 use clap::Parser;
 use cli::{Cli, Commands};
 use owo_colors::OwoColorize;
-use tabled::builder::Builder;
-use tabled::settings::Style;
 
 mod cli;
 mod scan;
@@ -26,24 +24,12 @@ fn main() {
             fail_on_unused: _,
             json,
         }) => {
-            let unused_classes = scan::scan(path, json);
+            let unused_classes = scan::scan(path);
             match unused_classes {
-                Ok(classes) => {
-                    let mut builder = Builder::default();
-
-                    builder.insert_column(0, ["Unused class"]);
-                    builder.insert_column(1, ["Path"]);
-                    builder.insert_record(0, vec!["Unused class", "Path"]);
-
-                    classes.iter().for_each(|(k, path)| {
-                        builder.push_record(vec![k.clone(), path.display().to_string()])
-                    });
-
-                    let mut table = builder.build();
-                    table.with(Style::rounded());
-
-                    println!("{}", table);
-                }
+                Ok(classes) => match json {
+                    true => scan::print_unused_classes_as_json(classes),
+                    false => scan::print_unused_classes_as_table(classes),
+                },
                 Err(error) => println!("{}", error.red()),
             }
         }

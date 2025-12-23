@@ -1,11 +1,25 @@
 use owo_colors::OwoColorize;
+use serde::Serialize;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::PathBuf;
+use tabled::Tabled;
 use walkdir::WalkDir;
 
-pub(super) fn discover_classes(path: &PathBuf) -> Result<HashMap<String, PathBuf>, String> {
+#[derive(Clone, Tabled, Serialize)]
+pub(crate) struct DiscoveredClass {
+    #[tabled(rename = "Unused class")]
+    pub name: String,
+    #[tabled(rename = "Defined in", display = "display_path")]
+    pub path: PathBuf,
+}
+
+fn display_path(path: &PathBuf) -> String {
+    path.display().to_string()
+}
+
+pub(super) fn discover_classes(path: &PathBuf) -> Result<HashMap<String, DiscoveredClass>, String> {
     let mut classes = HashMap::new();
 
     for entry in WalkDir::new(std::env::current_dir().expect("cwd").join(path))
@@ -45,9 +59,13 @@ pub(super) fn discover_classes(path: &PathBuf) -> Result<HashMap<String, PathBuf
                         .skip_while(|s| *s != "class" && *s != "trait" && *s != "interface")
                         .nth(1)
                     {
-                        Some(class_name) => {
-                            classes.insert(class_name.to_string(), entry.path().to_path_buf())
-                        }
+                        Some(class_name) => classes.insert(
+                            class_name.to_string(),
+                            DiscoveredClass {
+                                name: class_name.to_string(),
+                                path: entry.path().to_path_buf(),
+                            },
+                        ),
                         None => {
                             println!(
                                 "{}: Unable to parse class name",

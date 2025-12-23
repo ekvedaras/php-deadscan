@@ -1,12 +1,14 @@
 mod discover;
+mod reports;
 mod usage;
 
-use crate::scan::discover::discover_classes;
+use crate::scan::discover::{DiscoveredClass, discover_classes};
 use crate::scan::usage::detect_usages;
-use std::collections::HashMap;
+pub(super) use reports::print_unused_classes_as_json;
+pub(super) use reports::print_unused_classes_as_table;
 use std::path::PathBuf;
 
-pub(crate) fn scan(path: &PathBuf, _json: &bool) -> Result<HashMap<String, PathBuf>, String> {
+pub(crate) fn scan(path: &PathBuf) -> Result<Vec<DiscoveredClass>, String> {
     let class_map = discover_classes(path)
         .map_err(|e| format!("Failed to discover classes: {}", e.to_string()))?;
     let usages =
@@ -15,6 +17,6 @@ pub(crate) fn scan(path: &PathBuf, _json: &bool) -> Result<HashMap<String, PathB
     Ok(class_map
         .iter()
         .filter(|(k, _path)| !usages.contains_key(*k))
-        .map(|(k, v)| (k.clone(), v.clone()))
+        .map(|(_, v)| v.clone())
         .collect())
 }
