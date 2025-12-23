@@ -1,5 +1,6 @@
 use clap::Parser;
 use cli::{Cli, Commands};
+use owo_colors::OwoColorize;
 
 mod cli;
 mod scan;
@@ -22,7 +23,13 @@ fn main() {
             only_unused: _,
             fail_on_unused: _,
             json,
-        }) => scan::scan(path, json),
+        }) => {
+            let unused_classes = scan::scan(path, json);
+            match unused_classes {
+                Ok(classes) => println!("{:?}", classes),
+                Err(error) => println!("{}", error.red()),
+            }
+        }
         None => {}
     }
 }

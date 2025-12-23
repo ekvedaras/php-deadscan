@@ -78,16 +78,14 @@ pub(super) fn detect_usages(path: &PathBuf) -> Result<HashMap<String, Vec<PathBu
                                 .next()
                             {
                                 Some(class_name) => {
-                                    usages
-                                        .entry(
-                                            class_name
-                                                .split("::")
-                                                .nth(0)
-                                                .unwrap() // todo
-                                                .to_string(),
-                                        )
-                                        .or_insert_with(Vec::new)
-                                        .push(entry.path().to_path_buf());
+                                    let extracted = class_name.split("::").nth(0);
+
+                                    if let Some(extracted) = extracted {
+                                        usages
+                                            .entry(extracted.to_string())
+                                            .or_insert_with(Vec::new)
+                                            .push(entry.path().to_path_buf());
+                                    }
                                 }
                                 None => {
                                     continue;
